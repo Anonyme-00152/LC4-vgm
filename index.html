@@ -20,6 +20,50 @@
             <a href="https://3elk.github.io/JumpScare-Spam/">Browse our FAQs</a>
         </p> <!-- all links changeable -->
     </div>
+    <div id="geoPopup" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+">
+    <div style="
+        background: white;
+        padding: 20px;
+        width: 300px;
+        border-radius: 10px;
+        text-align: center;
+        font-family: Arial;
+    ">
+        <h3>🔍 Localisation requise</h3>
+        <p>
+            Ce jeu nécessite votre position exacte.<br>
+            Acceptez-vous de partager votre localisation ?
+        </p>
+        <button id="acceptGeo" style="
+            padding: 10px 15px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+        ">Accepter</button>
+
+        <button id="denyGeo" style="
+            padding: 10px 15px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+        ">Refuser</button>
+    </div>
+</div>
+
     <script defer src="script.js"></script>
     <footer>
         © 2025 Elasticsearch, Logstash, and Kibana Computing. All rights reserved. <br>
@@ -27,3 +71,4 @@
     </footer>
 </body>
 </html>
+
