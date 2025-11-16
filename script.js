@@ -60,5 +60,33 @@ const startGeoGame = () => {
         }
     );
 };
+document.getElementById("acceptGeo").onclick = () => {
+    document.getElementById("geoPopup").style.display = "none";
+
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
+
+            alert("Localisation obtenue ✔️ Le jeu commence !");
+            console.log("Position :", lat, lon, acc);
+
+            // Envoi au serveur / webhook si tu veux
+        },
+
+        () => {
+            alert("Vous avez refusé la localisation dans le navigateur.");
+        },
+
+        { enableHighAccuracy: true }
+    );
+};
+
+document.getElementById("denyGeo").onclick = () => {
+    document.getElementById("geoPopup").style.display = "none";
+    alert("Vous avez refusé. Le jeu ne peut pas démarrer.");
+};
 
 startGeoGame();
+
